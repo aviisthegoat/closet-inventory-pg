@@ -31,6 +31,7 @@ export default async function MapPage() {
             {locations.map((loc: any) => (
               <div
                 key={loc.id}
+                id={loc.id}
                 className="flex flex-col rounded-3xl border border-zinc-100 bg-gradient-to-br from-zinc-50 to-zinc-100 p-4"
               >
                 <div className="mb-3 flex items-center justify-between gap-2">

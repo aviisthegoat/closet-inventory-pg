@@ -178,7 +178,7 @@ export default function LocationsPage() {
               key={loc.id}
               className="flex flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-zinc-100"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start justify-between gap-3">
                 {loc.photo_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -197,6 +197,12 @@ export default function LocationsPage() {
                     </p>
                   )}
                 </div>
+                <a
+                  href={`/map#${loc.id}`}
+                  className="shrink-0 rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-medium text-white hover:bg-zinc-800"
+                >
+                  Open location
+                </a>
               </div>
               <div className="mt-3 space-y-2">
                 {loc.bins.length === 0 ? (
