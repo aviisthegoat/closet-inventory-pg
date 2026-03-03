@@ -35,6 +35,10 @@ export default function LocationsPage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [editingLocation, setEditingLocation] = useState<LocationWithBins | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const loadLocations = async () => {
     setLoading(true);
@@ -102,6 +106,69 @@ export default function LocationsPage() {
   useEffect(() => {
     loadLocations();
   }, []);
+
+  const beginEditLocation = (loc: LocationWithBins) => {
+    setEditingLocation(loc);
+    setEditName(loc.name);
+    setEditDescription(loc.description ?? "");
+  };
+
+  const handleUpdateLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLocation) return;
+    setSavingEdit(true);
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase
+      .from("locations")
+      .update({
+        name: editName,
+        description: editDescription || null,
+      })
+      .eq("id", editingLocation.id);
+
+    if (!error) {
+      await logActivity(supabase, {
+        userId: null,
+        action: "location_updated",
+        entityType: "location",
+        entityId: editingLocation.id,
+        details: { name: editName, description: editDescription || null },
+      });
+    }
+
+    setSavingEdit(false);
+    setEditingLocation(null);
+    setEditName("");
+    setEditDescription("");
+    await loadLocations();
+  };
+
+  const handleDeleteLocation = async () => {
+    if (!editingLocation) return;
+    // eslint-disable-next-line no-alert
+    const confirmed = window.confirm(
+      "Delete this location? Bins will stay in the system but lose their location.",
+    );
+    if (!confirmed) return;
+
+    setSavingEdit(true);
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from("locations").delete().eq("id", editingLocation.id);
+
+    await logActivity(supabase, {
+      userId: null,
+      action: "location_deleted",
+      entityType: "location",
+      entityId: editingLocation.id,
+      details: { name: editingLocation.name },
+    });
+
+    setSavingEdit(false);
+    setEditingLocation(null);
+    setEditName("");
+    setEditDescription("");
+    await loadLocations();
+  };
 
   const handleAddLocation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,12 +264,21 @@ export default function LocationsPage() {
                     </p>
                   )}
                 </div>
-                <a
-                  href={`/map#${loc.id}`}
-                  className="shrink-0 rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-medium text-white hover:bg-zinc-800"
-                >
-                  Open location
-                </a>
+                <div className="flex flex-col items-end gap-1">
+                  <a
+                    href={`/map#${loc.id}`}
+                    className="shrink-0 rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-medium text-white hover:bg-zinc-800"
+                  >
+                    Open location
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => beginEditLocation(loc)}
+                    className="text-[11px] font-medium text-zinc-500 hover:text-zinc-800"
+                  >
+                    Edit
+                  </button>
+                </div>
               </div>
               <div className="mt-3 space-y-2">
                 {loc.bins.length === 0 ? (
@@ -265,6 +341,86 @@ export default function LocationsPage() {
           ))
         )}
       </div>
+
+      {editingLocation && (
+        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center">
+          <div className="w-full max-w-md rounded-t-3xl bg-white p-5 shadow-xl md:rounded-3xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Edit location
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  if (savingEdit) return;
+                  setEditingLocation(null);
+                  setEditName("");
+                  setEditDescription("");
+                }}
+                className="text-xs text-zinc-500 hover:text-zinc-800"
+              >
+                Close
+              </button>
+            </div>
+            <form onSubmit={handleUpdateLocation} className="space-y-3 text-sm">
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-zinc-700">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-200"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-zinc-700">
+                  Description (optional)
+                </label>
+                <input
+                  type="text"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-200"
+                />
+              </div>
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={handleDeleteLocation}
+                  disabled={savingEdit}
+                  className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+                >
+                  Delete location
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={savingEdit}
+                    onClick={() => {
+                      setEditingLocation(null);
+                      setEditName("");
+                      setEditDescription("");
+                    }}
+                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingEdit}
+                    className="rounded-2xl bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                  >
+                    {savingEdit ? "Saving..." : "Save changes"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
