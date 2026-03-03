@@ -26,6 +26,7 @@ export default function InventoryPage() {
     item_group_id: string;
     item_group_name: string;
     bin_id: string | null;
+    location_id: string | null;
     quantity_on_hand: number;
     unit: string;
     low_stock_threshold: number | null;
@@ -174,7 +175,7 @@ export default function InventoryPage() {
                             const supabase = createSupabaseBrowserClient();
                             const { data: row } = await supabase
                               .from("items")
-                              .select("id, item_group_id, bin_id, quantity_on_hand, unit, low_stock_threshold, notes, item_groups(name)")
+                              .select("id, item_group_id, bin_id, location_id, quantity_on_hand, unit, low_stock_threshold, notes, item_groups(name)")
                               .eq("id", item.id)
                               .single();
                             if (!row) return;
@@ -182,6 +183,7 @@ export default function InventoryPage() {
                               item_group_id: row.item_group_id,
                               item_group_name: (row.item_groups as any)?.name ?? item.item_group_name,
                               bin_id: row.bin_id,
+                              location_id: row.location_id ?? null,
                               quantity_on_hand: row.quantity_on_hand,
                               unit: row.unit ?? "pcs",
                               low_stock_threshold: row.low_stock_threshold,

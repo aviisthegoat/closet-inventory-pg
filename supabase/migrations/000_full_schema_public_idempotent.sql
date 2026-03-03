@@ -34,6 +34,7 @@ create table if not exists public.items (
   id uuid primary key default gen_random_uuid(),
   item_group_id uuid references public.item_groups(id) on delete cascade,
   bin_id uuid references public.bins(id) on delete set null,
+  location_id uuid references public.locations(id) on delete set null,
   quantity_on_hand numeric(10,2) not null default 0,
   unit text default 'pcs',
   low_stock_threshold numeric(10,2),
@@ -106,13 +107,17 @@ create index if not exists idx_items_notes on public.items using gin (to_tsvecto
 create index if not exists idx_bins_label on public.bins (label);
 create index if not exists idx_locations_name on public.locations (name);
 
+-- Backfill schema for existing projects
+alter table public.items
+  add column if not exists location_id uuid references public.locations(id) on delete set null;
+
 -- ========== VIEWS ==========
 create or replace view public.v_items_with_status as
 select
   i.id,
   ig.name as item_group_name,
   b.label as bin_label,
-  l.name as location_name,
+  coalesce(li.name, lb.name) as location_name,
   i.quantity_on_hand,
   i.unit,
   i.low_stock_threshold,
@@ -123,7 +128,8 @@ select
 from public.items i
 left join public.item_groups ig on ig.id = i.item_group_id
 left join public.bins b on b.id = i.bin_id
-left join public.locations l on l.id = b.location_id;
+left join public.locations li on li.id = i.location_id
+left join public.locations lb on lb.id = b.location_id;
 
 create or replace view public.v_low_stock_items as
 select *

@@ -6,6 +6,7 @@ import { logActivity } from "@/lib/activityLogger";
 
 type BinOption = { id: string; label: string; locationName: string | null };
 type GroupOption = { id: string; name: string };
+type LocationOption = { id: string; name: string };
 
 type ItemFormProps = {
   defaultBinId?: string;
@@ -18,6 +19,7 @@ type ItemFormProps = {
     item_group_id: string;
     item_group_name: string;
     bin_id: string | null;
+    location_id: string | null;
     quantity_on_hand: number;
     unit: string;
     low_stock_threshold: number | null;
@@ -37,9 +39,11 @@ export function ItemForm({
 }: ItemFormProps) {
   const [bins, setBins] = useState<BinOption[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
+  const [locations, setLocations] = useState<LocationOption[]>([]);
   const [itemGroupId, setItemGroupId] = useState(defaultItemGroupId ?? "");
   const [newGroupName, setNewGroupName] = useState("");
   const [binId, setBinId] = useState(defaultBinId ?? "");
+  const [locationId, setLocationId] = useState(initialData?.location_id ?? "");
   const [quantity, setQuantity] = useState(initialData?.quantity_on_hand ?? 1);
   const [unit, setUnit] = useState(initialData?.unit ?? "pcs");
   const [lowStockThreshold, setLowStockThreshold] = useState<number | "">(
@@ -52,12 +56,19 @@ export function ItemForm({
   useEffect(() => {
     const load = async () => {
       const supabase = createSupabaseBrowserClient();
-      const [binsRes, groupsRes] = await Promise.all([
+      const [binsRes, groupsRes, locationsRes] = await Promise.all([
         supabase
           .from("bins")
           .select("id, label, locations(name)")
           .order("label", { ascending: true }),
-        supabase.from("item_groups").select("id, name").order("name", { ascending: true }),
+        supabase
+          .from("item_groups")
+          .select("id, name")
+          .order("name", { ascending: true }),
+        supabase
+          .from("locations")
+          .select("id, name")
+          .order("name", { ascending: true }),
       ]);
       setBins(
         (binsRes.data ?? []).map((b: any) => ({
@@ -66,7 +77,15 @@ export function ItemForm({
           locationName: b.locations?.name ?? null,
         }))
       );
-      setGroups((groupsRes.data ?? []).map((g: any) => ({ id: g.id, name: g.name })));
+      setGroups(
+        (groupsRes.data ?? []).map((g: any) => ({ id: g.id, name: g.name })),
+      );
+      setLocations(
+        (locationsRes.data ?? []).map((l: any) => ({
+          id: l.id as string,
+          name: l.name as string,
+        })),
+      );
     };
     load();
   }, []);
@@ -75,6 +94,7 @@ export function ItemForm({
     if (mode === "edit" && initialData) {
       setItemGroupId(initialData.item_group_id);
       setBinId(initialData.bin_id ?? "");
+      setLocationId(initialData.location_id ?? "");
       setQuantity(initialData.quantity_on_hand);
       setUnit(initialData.unit);
       setLowStockThreshold(initialData.low_stock_threshold ?? "");
@@ -119,6 +139,7 @@ export function ItemForm({
         .update({
           item_group_id: resolvedGroupId,
           bin_id: binId || null,
+          location_id: binId ? null : locationId || null,
           quantity_on_hand: quantity,
           unit,
           low_stock_threshold: lowStockThreshold === "" ? null : Number(lowStockThreshold),
@@ -139,6 +160,7 @@ export function ItemForm({
         details: {
           item_group_id: resolvedGroupId,
           bin_id: binId || null,
+          location_id: binId ? null : locationId || null,
           quantity_on_hand: quantity,
           unit,
         },
@@ -184,6 +206,7 @@ export function ItemForm({
       .insert({
         item_group_id: resolvedGroupId,
         bin_id: binId || null,
+        location_id: binId ? null : locationId || null,
         quantity_on_hand: quantity,
         unit,
         low_stock_threshold:
@@ -206,6 +229,7 @@ export function ItemForm({
       details: {
         item_group_id: resolvedGroupId,
         bin_id: binId || null,
+        location_id: binId ? null : locationId || null,
         quantity_on_hand: quantity,
         unit,
       },
@@ -213,6 +237,7 @@ export function ItemForm({
     setNewGroupName("");
     setItemGroupId("");
     setBinId(defaultBinId ?? "");
+    setLocationId("");
     setQuantity(1);
     setUnit("pcs");
     setLowStockThreshold("");
@@ -261,8 +286,33 @@ export function ItemForm({
         </select>
         {binId && (
           <p className="mt-1 text-[11px] text-zinc-500">
-            Location:{" "}
-            {bins.find((b) => b.id === binId)?.locationName ?? "No location set for this bin"}
+            Location is set by this bin:{" "}
+            {bins.find((b) => b.id === binId)?.locationName ??
+              "No location set for this bin"}
+          </p>
+        )}
+      </div>
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-zinc-700">
+          Location (for items not in bins)
+        </label>
+        <select
+          value={locationId}
+          onChange={(e) => setLocationId(e.target.value)}
+          disabled={!!binId}
+          className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-200 disabled:opacity-50"
+        >
+          <option value="">No location</option>
+          {locations.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.name}
+            </option>
+          ))}
+        </select>
+        {!binId && (
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Use this if the item is stored loose on a shelf or zone without a
+            bin.
           </p>
         )}
       </div>
