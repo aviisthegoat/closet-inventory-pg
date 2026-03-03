@@ -259,6 +259,12 @@ export function ItemForm({
             </option>
           ))}
         </select>
+        {binId && (
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Location:{" "}
+            {bins.find((b) => b.id === binId)?.locationName ?? "No location set for this bin"}
+          </p>
+        )}
       </div>
       <div className="flex gap-3">
         <div className="flex-1 space-y-1">
