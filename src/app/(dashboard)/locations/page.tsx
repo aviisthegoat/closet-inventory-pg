@@ -26,16 +26,18 @@ type LocationRow = {
   photo_url: string | null;
 };
 
-type LocationWithBins = LocationRow & {
+type LocationWithBinsAndItems = LocationRow & {
   bins: BinWithContents[];
+  looseItems: BinItem[];
 };
 
 export default function LocationsPage() {
-  const [locations, setLocations] = useState<LocationWithBins[]>([]);
+  const [locations, setLocations] = useState<LocationWithBinsAndItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [editingLocation, setEditingLocation] = useState<LocationWithBins | null>(null);
+  const [editingLocation, setEditingLocation] =
+    useState<LocationWithBinsAndItems | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
@@ -57,12 +59,14 @@ export default function LocationsPage() {
           .order("label", { ascending: true }),
         supabase
           .from("items")
-          .select("id, quantity_on_hand, unit, bin_id, item_groups(name)"),
+          .select(
+            "id, quantity_on_hand, unit, bin_id, location_id, item_groups(name)",
+          ),
       ]);
 
     const itemsByBin = new Map<string, BinItem[]>();
+    const itemsByLocation = new Map<string, BinItem[]>();
     (itemRows ?? []).forEach((row: any) => {
-      if (!row.bin_id) return;
       const quantityRaw = row.quantity_on_hand;
       const quantity =
         typeof quantityRaw === "number"
@@ -74,9 +78,19 @@ export default function LocationsPage() {
         quantity,
         unit: (row.unit as string | null) ?? "pcs",
       };
-      const existing = itemsByBin.get(row.bin_id as string) ?? [];
-      existing.push(entry);
-      itemsByBin.set(row.bin_id as string, existing);
+
+      if (row.bin_id) {
+        const existingBin = itemsByBin.get(row.bin_id as string) ?? [];
+        existingBin.push(entry);
+        itemsByBin.set(row.bin_id as string, existingBin);
+      }
+
+      if (!row.bin_id && row.location_id) {
+        const existingLoc =
+          itemsByLocation.get(row.location_id as string) ?? [];
+        existingLoc.push(entry);
+        itemsByLocation.set(row.location_id as string, existingLoc);
+      }
     });
 
     const binsByLocation = new Map<string, BinWithContents[]>();
@@ -93,13 +107,14 @@ export default function LocationsPage() {
       binsByLocation.set(row.location_id as string, existing);
     });
 
-    const withBins: LocationWithBins[] =
+    const withBinsAndItems: LocationWithBinsAndItems[] =
       (locationRows as LocationRow[] | null | undefined)?.map((loc) => ({
         ...loc,
         bins: binsByLocation.get(loc.id) ?? [],
+        looseItems: itemsByLocation.get(loc.id) ?? [],
       })) ?? [];
 
-    setLocations(withBins);
+    setLocations(withBinsAndItems);
     setLoading(false);
   };
 
@@ -107,7 +122,7 @@ export default function LocationsPage() {
     loadLocations();
   }, []);
 
-  const beginEditLocation = (loc: LocationWithBins) => {
+  const beginEditLocation = (loc: LocationWithBinsAndItems) => {
     setEditingLocation(loc);
     setEditName(loc.name);
     setEditDescription(loc.description ?? "");
@@ -331,6 +346,24 @@ export default function LocationsPage() {
                   </>
                 )}
               </div>
+              {loc.looseItems.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                    Items stored directly in this location
+                  </p>
+                  {loc.looseItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between rounded-2xl bg-zinc-50 px-3 py-1 text-[11px] text-zinc-700"
+                    >
+                      <span>{item.name}</span>
+                      <span>
+                        {item.quantity} {item.unit}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))
         )}
