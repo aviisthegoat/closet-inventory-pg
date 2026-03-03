@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { ItemForm } from "@/components/forms/ItemForm";
+import { BulkItemForm } from "@/components/forms/BulkItemForm";
 
 type ItemRow = {
   id: string;
@@ -21,6 +22,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showNewItem, setShowNewItem] = useState(false);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [editInitial, setEditInitial] = useState<{
     item_group_id: string;
@@ -73,12 +75,20 @@ export default function InventoryPage() {
             Search everything in the closet and quickly add new items.
           </p>
         </div>
-        <button
-          onClick={() => setShowNewItem(true)}
-          className="rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
-        >
-          + Add item
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowNewItem(true)}
+            className="rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
+          >
+            + Add item
+          </button>
+          <button
+            onClick={() => setShowBulkAdd(true)}
+            className="rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+          >
+            + Add multiple
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
@@ -173,15 +183,67 @@ export default function InventoryPage() {
                           type="button"
                           onClick={async () => {
                             const supabase = createSupabaseBrowserClient();
-                            const { data: row } = await supabase
+                            // #region agent log
+                            fetch(
+                              "http://127.0.0.1:7815/ingest/b307b67c-0b91-415b-ba95-a48343d93232",
+                              {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "X-Debug-Session-Id": "ddae03",
+                                },
+                                body: JSON.stringify({
+                                  sessionId: "ddae03",
+                                  runId: "pre-fix",
+                                  hypothesisId: "H3_click_handler_runs",
+                                  location:
+                                    "src/app/(dashboard)/inventory/page.tsx:174",
+                                  message: "Inventory Edit button clicked",
+                                  data: { itemId: item.id },
+                                  timestamp: Date.now(),
+                                }),
+                              },
+                            ).catch(() => {});
+                            // #endregion
+                            const { data: row, error } = await supabase
                               .from("items")
-                              .select("id, item_group_id, bin_id, location_id, quantity_on_hand, unit, low_stock_threshold, notes, item_groups(name)")
+                              .select(
+                                "id, item_group_id, bin_id, location_id, quantity_on_hand, unit, low_stock_threshold, notes, item_groups(name)",
+                              )
                               .eq("id", item.id)
                               .single();
+                            // #region agent log
+                            fetch(
+                              "http://127.0.0.1:7815/ingest/b307b67c-0b91-415b-ba95-a48343d93232",
+                              {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "X-Debug-Session-Id": "ddae03",
+                                },
+                                body: JSON.stringify({
+                                  sessionId: "ddae03",
+                                  runId: "pre-fix",
+                                  hypothesisId: "H1_items_query_succeeds",
+                                  location:
+                                    "src/app/(dashboard)/inventory/page.tsx:181",
+                                  message: "Inventory Edit load item result",
+                                  data: {
+                                    itemId: item.id,
+                                    hasRow: !!row,
+                                    errorMessage: error?.message ?? null,
+                                  },
+                                  timestamp: Date.now(),
+                                }),
+                              },
+                            ).catch(() => {});
+                            // #endregion
                             if (!row) return;
                             setEditInitial({
                               item_group_id: row.item_group_id,
-                              item_group_name: (row.item_groups as any)?.name ?? item.item_group_name,
+                              item_group_name:
+                                (row.item_groups as any)?.name ??
+                                item.item_group_name,
                               bin_id: row.bin_id,
                               location_id: row.location_id ?? null,
                               quantity_on_hand: row.quantity_on_hand,
@@ -222,6 +284,33 @@ export default function InventoryPage() {
                 setShowNewItem(false);
                 const supabase = createSupabaseBrowserClient();
                 const { data } = await supabase.from("v_items_with_status").select("*");
+                setItems((data as ItemRow[]) ?? []);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {showBulkAdd && (
+        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center">
+          <div className="w-full max-w-xl rounded-t-3xl bg-white p-5 shadow-xl md:rounded-3xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Add multiple items
+              </h2>
+              <button
+                onClick={() => setShowBulkAdd(false)}
+                className="text-xs text-zinc-500 hover:text-zinc-800"
+              >
+                Close
+              </button>
+            </div>
+            <BulkItemForm
+              onCreated={async () => {
+                setShowBulkAdd(false);
+                const supabase = createSupabaseBrowserClient();
+                const { data } =
+                  await supabase.from("v_items_with_status").select("*");
                 setItems((data as ItemRow[]) ?? []);
               }}
             />
