@@ -11,6 +11,7 @@ const navItems = [
   { href: "/checkouts", label: "Checkouts" },
   { href: "/schedule", label: "Schedule" },
   { href: "/clubs", label: "Club requests" },
+  { href: "/request", label: "Request form" },
   { href: "/lost-report", label: "Report loss" },
   { href: "/logs", label: "Activity" },
 ];
