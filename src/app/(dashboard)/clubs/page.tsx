@@ -258,7 +258,7 @@ export default function ClubRequestsPage() {
                           rel="noreferrer"
                           className="text-sky-700 underline"
                         >
-                          Open
+                          View
                         </a>
                       </p>
                     )}
