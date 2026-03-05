@@ -11,6 +11,7 @@ type RequestRow = {
   custom_item_name: string | null;
   status: string;
   pickup_at: string | null;
+  seen: boolean;
 };
 
 export function NotificationBell() {
@@ -24,14 +25,14 @@ export function NotificationBell() {
       const { data } = await supabase
         .from("club_requests")
         .select(
-          "id, requester_name, club_name, custom_item_name, status, pickup_at",
+          "id, requester_name, club_name, custom_item_name, status, pickup_at, seen",
         )
         .in("status", ["open", "approved", "ordered"])
         .order("created_at", { ascending: false })
         .limit(10);
       const rows = (data as RequestRow[] | null) ?? [];
       setRequests(rows);
-      setCount(rows.filter((r: any) => (r as any).seen === false).length);
+      setCount(rows.filter((r) => !r.seen).length);
     };
     load();
   }, []);

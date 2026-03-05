@@ -344,6 +344,26 @@ export default async function DashboardPage() {
           </div>
         </div>
       </section>
+      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-zinc-100">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-zinc-900">
+            Requested by clubs
+          </h2>
+          <a
+            href="/dashboard/requests"
+            className="text-xs text-zinc-500 hover:text-zinc-700"
+          >
+            View all
+          </a>
+        </div>
+        <div className="mt-3 space-y-2 text-xs">
+          {/* This card is a lightweight entry; full details live on /dashboard/requests */}
+          <p className="text-xs text-zinc-500">
+            Open and recent requests appear under the bell icon and on the
+            Requests page.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
