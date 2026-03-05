@@ -359,7 +359,7 @@ export default async function DashboardPage() {
             Requested by clubs
           </h2>
           <a
-            href="/requests"
+            href="/clubs"
             className="text-xs text-zinc-500 hover:text-zinc-700"
           >
             View all

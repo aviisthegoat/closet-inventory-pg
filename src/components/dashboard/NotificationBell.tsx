@@ -61,7 +61,7 @@ export function NotificationBell() {
               Club requests
             </p>
             <Link
-              href="/requests"
+              href="/clubs"
               className="text-[11px] text-zinc-500 hover:text-zinc-800"
             >
               View all
@@ -83,7 +83,7 @@ export function NotificationBell() {
                 return (
                   <Link
                     key={r.id}
-                  href={`/requests?id=${r.id}`}
+                  href="/clubs"
                     className="block rounded-2xl bg-zinc-50 px-2 py-1.5 hover:bg-zinc-100"
                   >
                     <p className="text-[11px] font-medium text-zinc-900">

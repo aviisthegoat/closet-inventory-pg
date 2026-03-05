@@ -10,6 +10,7 @@ const navItems = [
   { href: "/locations", label: "Closet map" },
   { href: "/checkouts", label: "Checkouts" },
   { href: "/schedule", label: "Schedule" },
+  { href: "/clubs", label: "Club requests" },
   { href: "/lost-report", label: "Report loss" },
   { href: "/logs", label: "Activity" },
 ];
