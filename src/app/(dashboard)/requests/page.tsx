@@ -17,6 +17,7 @@ type RequestRow = {
   collector_name: string | null;
   collector_email: string | null;
   pickup_at: string | null;
+  dropoff_at: string | null;
   responsibility_confirmed: boolean;
   status: string;
   created_at: string;
@@ -41,7 +42,7 @@ export default function RequestsPage() {
       let query = supabase
         .from("club_requests")
         .select(
-          "id, item_id, custom_item_name, requested_quantity, product_url, requester_name, club_name, level, will_collect_self, collector_name, collector_email, pickup_at, responsibility_confirmed, status, created_at, items(item_groups(name))",
+          "id, item_id, custom_item_name, requested_quantity, product_url, requester_name, club_name, level, will_collect_self, collector_name, collector_email, pickup_at, dropoff_at, responsibility_confirmed, status, created_at, items(item_groups(name))",
         )
         .order("created_at", { ascending: false });
 
@@ -102,6 +103,12 @@ export default function RequestsPage() {
                 hour: "numeric",
                 minute: "2-digit",
               });
+            const dropoff =
+              r.dropoff_at &&
+              new Date(r.dropoff_at).toLocaleTimeString(undefined, {
+                hour: "numeric",
+                minute: "2-digit",
+              });
             return (
               <div
                 key={r.id}
@@ -137,6 +144,11 @@ export default function RequestsPage() {
                     </span>
                     {pickup && (
                       <p className="text-zinc-500">Pickup: {pickup}</p>
+                    )}
+                    {dropoff && (
+                      <p className="text-zinc-500">
+                        Expected drop-off: {dropoff}
+                      </p>
                     )}
                     <button
                       type="button"

@@ -115,6 +115,7 @@ create table if not exists public.club_requests (
   collector_name text,
   collector_email text,
   pickup_at timestamptz,
+  dropoff_at timestamptz,
   responsibility_confirmed boolean not null default false,
   status text not null default 'open'
     check (status in ('open','approved','ordered','fulfilled','resolved')),

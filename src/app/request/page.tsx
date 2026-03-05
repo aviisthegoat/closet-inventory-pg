@@ -36,6 +36,7 @@ export default function PublicRequestPage() {
   const [collectorEmail, setCollectorEmail] = useState("");
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
+  const [dropoffTime, setDropoffTime] = useState("");
   const [responsibility, setResponsibility] = useState(false);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -145,6 +146,9 @@ export default function PublicRequestPage() {
 
     const supabase = createSupabaseBrowserClient();
     const pickupAt = new Date(`${pickupDate}T${pickupTime}:00`).toISOString();
+    const dropoffAt = dropoffTime
+      ? new Date(`${pickupDate}T${dropoffTime}:00`).toISOString()
+      : null;
 
     const itemsById = new Map(items.map((i) => [i.id, i]));
 
@@ -189,6 +193,7 @@ export default function PublicRequestPage() {
           collector_name: willCollectSelf ? null : collectorName || null,
           collector_email: willCollectSelf ? null : collectorEmail || null,
           pickup_at: pickupAt,
+          dropoff_at: dropoffAt,
           responsibility_confirmed: responsibility,
           status: "open",
         });
@@ -211,6 +216,7 @@ export default function PublicRequestPage() {
         collector_name: willCollectSelf ? null : collectorName || null,
         collector_email: willCollectSelf ? null : collectorEmail || null,
         pickup_at: pickupAt,
+        dropoff_at: dropoffAt,
         responsibility_confirmed: responsibility,
         status: "open",
       });
@@ -244,6 +250,7 @@ export default function PublicRequestPage() {
       setCollectorEmail("");
       setPickupDate("");
       setPickupTime("");
+      setDropoffTime("");
       setResponsibility(false);
       setNotes("");
     } catch (err: any) {
@@ -480,7 +487,7 @@ export default function PublicRequestPage() {
 
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-zinc-900">
-            Pickup details
+            Pickup / drop-off details
           </h2>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1">
@@ -502,6 +509,17 @@ export default function PublicRequestPage() {
                 type="time"
                 value={pickupTime}
                 onChange={(e) => setPickupTime(e.target.value)}
+                className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-zinc-700">
+                Expected drop-off time (optional)
+              </label>
+              <input
+                type="time"
+                value={dropoffTime}
+                onChange={(e) => setDropoffTime(e.target.value)}
                 className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm"
               />
             </div>
