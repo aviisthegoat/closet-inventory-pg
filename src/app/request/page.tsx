@@ -847,18 +847,6 @@ export default function PublicRequestPage() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-xs font-medium text-zinc-700">
-            Notes for the closet team (optional)
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs focus:border-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-200"
-          />
-        </div>
-
         <div className="space-y-2 rounded-2xl bg-zinc-50 px-3 py-2 text-[11px] text-zinc-700">
           <label className="flex items-start gap-2">
             <input
