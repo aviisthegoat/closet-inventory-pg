@@ -102,6 +102,26 @@ create table if not exists public.activity_logs (
   created_at timestamptz default now()
 );
 
+create table if not exists public.club_requests (
+  id uuid primary key default gen_random_uuid(),
+  item_id uuid references public.items(id) on delete set null,
+  custom_item_name text,
+  requested_quantity numeric(10,2) not null,
+  product_url text,
+  requester_name text not null,
+  club_name text not null,
+  level text check (level in ('UG','PG')),
+  will_collect_self boolean,
+  collector_name text,
+  collector_email text,
+  pickup_at timestamptz,
+  responsibility_confirmed boolean not null default false,
+  status text not null default 'open'
+    check (status in ('open','approved','ordered','fulfilled','resolved')),
+  seen boolean not null default false,
+  created_at timestamptz default now()
+);
+
 -- ========== INDEXES ==========
 create index if not exists idx_item_groups_name on public.item_groups using gin (to_tsvector('english', name));
 create index if not exists idx_items_notes on public.items using gin (to_tsvector('english', coalesce(notes, '')));
@@ -149,6 +169,7 @@ alter table public.item_groups enable row level security;
 alter table public.items enable row level security;
 alter table public.checkouts enable row level security;
 alter table public.reservations enable row level security;
+alter table public.club_requests enable row level security;
 alter table public.qr_codes enable row level security;
 alter table public.activity_logs enable row level security;
 alter table public.profiles enable row level security;
@@ -186,6 +207,8 @@ drop policy if exists "authenticated_select_activity_logs" on public.activity_lo
 drop policy if exists "authenticated_write_activity_logs" on public.activity_logs;
 drop policy if exists "anon_all_activity_logs" on public.activity_logs;
 
+drop policy if exists "anon_all_club_requests" on public.club_requests;
+
 drop policy if exists "select_own_profile" on public.profiles;
 drop policy if exists "update_own_profile" on public.profiles;
 
@@ -198,6 +221,8 @@ create policy "anon_all_checkouts" on public.checkouts for all using (true) with
 create policy "anon_all_reservations" on public.reservations for all using (true) with check (true);
 create policy "anon_all_qr_codes" on public.qr_codes for all using (true) with check (true);
 create policy "anon_all_activity_logs" on public.activity_logs for all using (true) with check (true);
+
+create policy "anon_all_club_requests" on public.club_requests for all using (true) with check (true);
 
 -- Profiles: only own profile (for future optional login)
 create policy "select_own_profile" on public.profiles for select using (auth.uid() = id);

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/getUserProfile";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -65,8 +66,14 @@ export default async function DashboardLayout({
         </div>
       </aside>
       <div className="flex-1">
-        <header className="flex items-center justify-between border-b border-zinc-200 bg-white/70 px-4 py-3 backdrop-blur md:hidden">
-          <p className="text-sm font-semibold">Closet Inventory Management</p>
+        <header className="flex items-center justify-between border-b border-zinc-200 bg-white/70 px-4 py-3 backdrop-blur">
+          <p className="text-sm font-semibold md:hidden">
+            Closet Inventory Management
+          </p>
+          <div className="hidden md:block" />
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+          </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-6 md:px-8">
           {children}
