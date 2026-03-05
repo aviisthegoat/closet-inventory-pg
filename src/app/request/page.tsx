@@ -373,23 +373,6 @@ export default function PublicRequestPage() {
         </p>
       </header>
 
-      <section className="space-y-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-zinc-100">
-        <h2 className="text-sm font-semibold text-zinc-900">
-          1. Choose items
-        </h2>
-        <p className="text-[11px] text-zinc-500">
-          Start with items we already have in the closet. We only show items
-          that are currently available to borrow.
-        </p>
-        {loading ? (
-          <p className="text-xs text-zinc-500">Loading available items…</p>
-        ) : items.length === 0 ? (
-          <p className="text-xs text-zinc-500">
-            Nothing is currently available to request.
-          </p>
-        ) : null}
-      </section>
-
       <form
         onSubmit={handleSubmit}
         className="space-y-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-zinc-100"
