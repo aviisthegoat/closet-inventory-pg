@@ -10,6 +10,7 @@ type RequestRow = {
   requested_quantity: number;
   product_url: string | null;
   estimated_unit_price?: number | null;
+  delivery_details?: string | null;
   requester_name: string;
   club_name: string;
   level?: string | null;
@@ -239,6 +240,11 @@ export default function ClubRequestsPage() {
                     {estTotal != null && (
                       <p className="text-[11px] text-zinc-700">
                         Approx. total: ${estTotal.toFixed(2)}
+                      </p>
+                    )}
+                    {r.delivery_details && (
+                      <p className="text-[11px] text-amber-900">
+                        {r.delivery_details}
                       </p>
                     )}
                     {productUrl && (

@@ -29,6 +29,10 @@ export default function PublicRequestPage() {
   const [newLines, setNewLines] = useState<NewItemLine[]>([
     { name: "", quantity: 1, productUrl: "", price: 0 },
   ]);
+  const [isFoodOrder, setIsFoodOrder] = useState(false);
+  const [foodLines, setFoodLines] = useState<NewItemLine[]>([
+    { name: "", quantity: 1, productUrl: "", price: 0 },
+  ]);
   const [requesterName, setRequesterName] = useState("");
   const [clubName, setClubName] = useState("");
   const [level, setLevel] = useState<"UG" | "PG" | "">("");
@@ -38,6 +42,9 @@ export default function PublicRequestPage() {
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
   const [dropoffTime, setDropoffTime] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
+  const [deliveryPlace, setDeliveryPlace] = useState("");
   const [responsibility, setResponsibility] = useState(false);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -126,6 +133,25 @@ export default function PublicRequestPage() {
     setNewLines((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const updateFoodLine = (index: number, patch: Partial<NewItemLine>) => {
+    setFoodLines((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], ...patch };
+      return next;
+    });
+  };
+
+  const addFoodLine = () => {
+    setFoodLines((prev) => [
+      ...prev,
+      { name: "", quantity: 1, productUrl: "", price: 0 },
+    ]);
+  };
+
+  const removeFoodLine = (index: number) => {
+    setFoodLines((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -146,8 +172,12 @@ export default function PublicRequestPage() {
       return;
     }
 
-    // Budget check for new items we don't own yet
-    const activeNewLines = newLines.filter(
+    // Budget check for new items we don't own yet (including food/beverage orders)
+    const allNewLines = [
+      ...newLines,
+      ...(isFoodOrder ? foodLines : []),
+    ];
+    const activeNewLines = allNewLines.filter(
       (line) => line.name.trim() && line.quantity > 0 && line.productUrl.trim(),
     );
     for (const line of activeNewLines) {
@@ -169,6 +199,20 @@ export default function PublicRequestPage() {
         )}. For requests above this, please email rachel.rowe@hult.edu or emilie.bader@hult.edu to enquire about pitching to the Funding Committee.`,
       );
       return;
+    }
+
+    const hasFoodLines =
+      isFoodOrder &&
+      foodLines.some(
+        (line) => line.name.trim() && line.quantity > 0 && line.productUrl.trim(),
+      );
+    if (hasFoodLines) {
+      if (!deliveryDate || !deliveryTime || !deliveryPlace.trim()) {
+        setError(
+          "Please enter delivery date, time, and place for food or beverage orders.",
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -230,9 +274,13 @@ export default function PublicRequestPage() {
     });
 
     // New items to order
-    newLines.forEach((line) => {
+    const pushNewItemRow = (line: NewItemLine, isFood: boolean) => {
       if (!line.name.trim() || line.quantity <= 0 || !line.productUrl.trim())
         return;
+      const deliveryDetails =
+        isFood && deliveryDate && deliveryTime && deliveryPlace.trim()
+          ? `Food/beverage delivery at ${deliveryPlace.trim()} on ${deliveryDate} at ${deliveryTime}`
+          : null;
       clubRequestRows.push({
         item_id: null,
         custom_item_name: line.name.trim(),
@@ -247,10 +295,16 @@ export default function PublicRequestPage() {
         collector_email: willCollectSelf ? null : collectorEmail || null,
         pickup_at: pickupAt,
         dropoff_at: dropoffAt,
+        delivery_details: deliveryDetails,
         responsibility_confirmed: responsibility,
         status: "open",
       });
-    });
+    };
+
+    newLines.forEach((line) => pushNewItemRow(line, false));
+    if (isFoodOrder) {
+      foodLines.forEach((line) => pushNewItemRow(line, true));
+    }
 
     try {
       if (reservationRows.length > 0) {
@@ -281,6 +335,11 @@ export default function PublicRequestPage() {
       setPickupDate("");
       setPickupTime("");
       setDropoffTime("");
+       setDeliveryDate("");
+       setDeliveryTime("");
+       setDeliveryPlace("");
+       setIsFoodOrder(false);
+       setFoodLines([{ name: "", quantity: 1, productUrl: "", price: 0 }]);
       setResponsibility(false);
       setNotes("");
     } catch (err: any) {
@@ -481,6 +540,137 @@ export default function PublicRequestPage() {
           >
             + Add new item to order
           </button>
+        </div>
+
+        <div className="space-y-2 pt-2">
+          <label className="flex items-center gap-2 text-xs font-medium text-zinc-700">
+            <input
+              type="checkbox"
+              checked={isFoodOrder}
+              onChange={(e) => setIsFoodOrder(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 text-zinc-900"
+            />
+            Are you ordering food or beverages?
+          </label>
+          {isFoodOrder && (
+            <div className="space-y-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-3">
+              <p className="text-[11px] text-amber-900">
+                Use this for pizzas, snacks, drinks, catering, etc. We&apos;ll do
+                our best, but ordering is not guaranteed and the total budget for
+                new items is still capped at $150 per request.
+              </p>
+              <div className="space-y-2">
+                {foodLines.map((line, index) => (
+                  <div
+                    key={index}
+                    className="space-y-1 rounded-2xl border border-amber-100 bg-white p-2 text-xs"
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        value={line.name}
+                        onChange={(e) =>
+                          updateFoodLine(index, { name: e.target.value })
+                        }
+                        placeholder="Food or drink (e.g. Large cheese pizza)"
+                        className="min-w-[160px] flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs"
+                      />
+                      <input
+                        type="number"
+                        min={1}
+                        value={line.quantity}
+                        onChange={(e) =>
+                          updateFoodLine(index, {
+                            quantity: Number(e.target.value) || 1,
+                          })
+                        }
+                        placeholder="Qty"
+                        className="w-20 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs"
+                      />
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-zinc-500">$</span>
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={line.price}
+                          onChange={(e) =>
+                            updateFoodLine(index, {
+                              price:
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value) || 0,
+                            })
+                          }
+                          placeholder="Price each"
+                          className="w-24 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                    </div>
+                    <input
+                      value={line.productUrl}
+                      onChange={(e) =>
+                        updateFoodLine(index, { productUrl: e.target.value })
+                      }
+                      placeholder="Link to the exact food/drink you want us to order"
+                      className="mt-1 block w-full rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs"
+                    />
+                    {foodLines.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeFoodLine(index)}
+                        className="mt-1 text-[11px] text-zinc-500 hover:text-zinc-800"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addFoodLine}
+                  className="rounded-xl border border-amber-200 bg-white px-2 py-1 text-[11px] font-medium text-amber-900 hover:bg-amber-50"
+                >
+                  + Add food / beverage item
+                </button>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-700">
+                    Delivery date
+                  </label>
+                  <input
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-700">
+                    Delivery time
+                  </label>
+                  <input
+                    type="time"
+                    value={deliveryTime}
+                    onChange={(e) => setDeliveryTime(e.target.value)}
+                    className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-medium text-zinc-700">
+                    Delivery place
+                  </label>
+                  <input
+                    type="text"
+                    value={deliveryPlace}
+                    onChange={(e) => setDeliveryPlace(e.target.value)}
+                    placeholder="e.g. Campus cafeteria, Event hall"
+                    className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
