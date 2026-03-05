@@ -18,6 +18,7 @@ export default async function DashboardPage() {
     { data: issueCheckouts },
     { data: reservations },
     { data: expiringSoon },
+    { data: clubRequests },
   ] = await Promise.all([
     supabase.from("v_low_stock_items").select("*").limit(5),
     supabase
@@ -55,6 +56,14 @@ export default async function DashboardPage() {
       .gte("expiry_date", nowIso)
       .lte("expiry_date", twoWeeksIso)
       .order("expiry_date", { ascending: true })
+      .limit(5),
+    supabase
+      .from("club_requests")
+      .select(
+        "id, requester_name, club_name, custom_item_name, requested_quantity, status, pickup_at",
+      )
+      .in("status", ["open", "approved", "ordered"])
+      .order("created_at", { ascending: false })
       .limit(5),
   ]);
 
@@ -350,18 +359,50 @@ export default async function DashboardPage() {
             Requested by clubs
           </h2>
           <a
-            href="/dashboard/requests"
+            href="/requests"
             className="text-xs text-zinc-500 hover:text-zinc-700"
           >
             View all
           </a>
         </div>
         <div className="mt-3 space-y-2 text-xs">
-          {/* This card is a lightweight entry; full details live on /dashboard/requests */}
-          <p className="text-xs text-zinc-500">
-            Open and recent requests appear under the bell icon and on the
-            Requests page.
-          </p>
+          {clubRequests && (clubRequests as any).length > 0 ? (
+            (clubRequests as any).map((r: any) => {
+              const pickup =
+                r.pickup_at &&
+                new Date(r.pickup_at).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                });
+              const label = r.custom_item_name ?? "Requested items";
+              return (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-[11px] font-medium text-zinc-900">
+                      {label}
+                    </p>
+                    <p className="text-[11px] text-zinc-700">
+                      {r.requester_name} · {r.club_name}
+                    </p>
+                    <p className="text-[11px] text-zinc-500">
+                      {r.requested_quantity} requested
+                      {pickup ? ` · Pickup ${pickup}` : ""}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700">
+                    {r.status}
+                  </span>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-xs text-zinc-500">
+              No open club requests right now.
+            </p>
+          )}
         </div>
       </section>
     </div>
