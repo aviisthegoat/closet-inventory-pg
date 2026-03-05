@@ -11,12 +11,12 @@ type RequestRow = {
   product_url: string | null;
   requester_name: string;
   club_name: string;
-  level: string | null;
-  will_collect_self: boolean | null;
-  collector_name: string | null;
-  collector_email: string | null;
-  pickup_at: string | null;
-  dropoff_at: string | null;
+  level?: string | null;
+  will_collect_self?: boolean | null;
+  collector_name?: string | null;
+  collector_email?: string | null;
+  pickup_at?: string | null;
+  dropoff_at?: string | null;
   responsibility_confirmed: boolean;
   status: string;
   created_at: string;
@@ -38,16 +38,22 @@ export default function RequestsPage() {
       const supabase = createSupabaseBrowserClient();
       const { data, error } = await supabase
         .from("club_requests")
-        .select(
-          "id, item_id, custom_item_name, requested_quantity, product_url, requester_name, club_name, level, will_collect_self, collector_name, collector_email, pickup_at, dropoff_at, responsibility_confirmed, status, created_at, items(item_groups(name))",
-        )
+        .select("*, items(item_groups(name))")
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Failed to load club_requests", error);
         setRows([]);
       } else {
-        setRows((data as RequestRow[] | null) ?? []);
+        const safeRows = ((data as any[]) ?? []).map((row) => ({
+          ...row,
+          dropoff_at: row.dropoff_at ?? null,
+          level: row.level ?? null,
+          will_collect_self: row.will_collect_self ?? null,
+          collector_name: row.collector_name ?? null,
+          collector_email: row.collector_email ?? null,
+        })) as RequestRow[];
+        setRows(safeRows);
       }
       setLoading(false);
     };
