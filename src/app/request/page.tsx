@@ -607,10 +607,9 @@ export default function PublicRequestPage() {
               onChange={(e) => setResponsibility(e.target.checked)}
             />
             <span>
-              I understand that if the return is after 4 PM or on a different
-              day, our club and the person collecting will be responsible for
-              all items and will return them in the same condition so other
-              clubs don&apos;t face problems.
+              I understand our club and the person collecting will be
+              responsible for all items and will return them in the same
+              condition.
             </span>
           </label>
         </div>
