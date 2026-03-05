@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 type RequestRow = {
@@ -32,30 +31,28 @@ export default function RequestsPage() {
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       const supabase = createSupabaseBrowserClient();
-      const focusId = searchParams.get("id");
-      let query = supabase
+      const { data, error } = await supabase
         .from("club_requests")
         .select(
           "id, item_id, custom_item_name, requested_quantity, product_url, requester_name, club_name, level, will_collect_self, collector_name, collector_email, pickup_at, dropoff_at, responsibility_confirmed, status, created_at, items(item_groups(name))",
         )
         .order("created_at", { ascending: false });
 
-      if (focusId) {
-        query = query.eq("id", focusId);
+      if (error) {
+        console.error("Failed to load club_requests", error);
+        setRows([]);
+      } else {
+        setRows((data as RequestRow[] | null) ?? []);
       }
-
-      const { data } = await query;
-      setRows((data as RequestRow[] | null) ?? []);
       setLoading(false);
     };
     load();
-  }, [searchParams]);
+  }, []);
 
   const markResolved = async (id: string) => {
     setUpdatingId(id);
