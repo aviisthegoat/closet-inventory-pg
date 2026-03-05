@@ -6,8 +6,6 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 type PublicItem = {
   id: string;
   name: string;
-  binLabel: string | null;
-  locationName: string | null;
   quantity_on_hand: number;
   low_stock_threshold: number | null;
 };
@@ -71,11 +69,6 @@ export default function PublicRequestPage() {
         .map((row) => ({
           id: row.id as string,
           name: (row.item_groups?.name as string) ?? "Item",
-          binLabel: (row.bins?.label as string | null) ?? null,
-          locationName:
-            (row.bins?.locations?.name as string | null) ??
-            (row.locations?.name as string | null) ??
-            null,
           quantity_on_hand: Number(row.quantity_on_hand) || 0,
           low_stock_threshold:
             row.low_stock_threshold !== null
@@ -261,43 +254,31 @@ export default function PublicRequestPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
-      <header className="space-y-1">
+      <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
           Request items from the closet
         </h1>
         <p className="text-sm text-zinc-500">
-          See what&apos;s available and submit a request. We&apos;ll confirm
-          your reservation and any orders we place.
+          Tell us what your club needs and when you&apos;ll pick it up. We&apos;ll
+          confirm what we can set aside and what we need to order.
         </p>
       </header>
 
       <section className="space-y-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-zinc-100">
         <h2 className="text-sm font-semibold text-zinc-900">
-          Available items (no quantities shown)
+          1. Choose items
         </h2>
+        <p className="text-[11px] text-zinc-500">
+          Start with items we already have in the closet. We only show items
+          that are currently available to borrow.
+        </p>
         {loading ? (
           <p className="text-xs text-zinc-500">Loading available items…</p>
         ) : items.length === 0 ? (
           <p className="text-xs text-zinc-500">
             Nothing is currently available to request.
           </p>
-        ) : (
-          <ul className="grid gap-2 text-xs md:grid-cols-2">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className="rounded-2xl border border-zinc-100 bg-zinc-50 px-3 py-2"
-              >
-                <p className="font-medium text-zinc-900">{item.name}</p>
-                <p className="text-[11px] text-zinc-500">
-                  {item.binLabel ?? "No bin"}
-                  {" · "}
-                  {item.locationName ?? "No location"}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        ) : null}
       </section>
 
       <form
@@ -317,12 +298,12 @@ export default function PublicRequestPage() {
 
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-zinc-900">
-            What would you like to request?
+            2. What would you like to request?
           </h2>
           <p className="text-[11px] text-zinc-500">
-            You can choose existing items from the closet, and also request new
-            items we don&apos;t currently have. For new items, paste a product
-            link; we may choose an alternative if needed.
+            Choose items from the list below. If you need something we don&apos;t
+            currently own, add it under &quot;New items to order&quot; with a
+            link.
           </p>
           <div className="space-y-2">
             {existingLines.map((line, index) => (
@@ -339,10 +320,7 @@ export default function PublicRequestPage() {
                 >
                   {items.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name} ·{" "}
-                      {item.binLabel ?? "No bin"}
-                      {" · "}
-                      {item.locationName ?? "No location"}
+                      {item.name}
                     </option>
                   ))}
                 </select>
