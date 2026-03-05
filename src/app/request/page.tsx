@@ -164,7 +164,9 @@ export default function PublicRequestPage() {
     );
     if (totalNewCost > 150) {
       setError(
-        `The total estimated cost of new items must be $150 or less. Your current total is approximately $${totalNewCost.toFixed(2)}.`,
+        `The total estimated cost of new items must be $150 or less. Your current total is approximately $${totalNewCost.toFixed(
+          2,
+        )}. For requests above this, please email rachel.rowe@hult.edu or emilie.bader@hult.edu to enquire about pitching to the Funding Committee.`,
       );
       return;
     }
