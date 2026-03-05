@@ -264,9 +264,9 @@ export default function ClubRequestsPage() {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 text-[11px]">
-                    <span className="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700">
-                      {r.status}
-                    </span>
+                    <p className="text-[11px] text-zinc-500">
+                      Status: {r.status}
+                    </p>
                     {pickup && (
                       <p className="text-zinc-500">Pickup: {pickup}</p>
                     )}
