@@ -470,12 +470,13 @@ export default function PublicRequestPage() {
             Request new items (we don&apos;t have these yet)
           </h3>
           <p className="text-[11px] text-zinc-500">
-            For items we don&apos;t already own, we&apos;ll do our best but{" "}
+            For items we don&apos;t already own, we&apos;ll do our best, but{" "}
             <span className="font-medium">
-              ordering is not guaranteed and the total budget for new items is
-              capped at $150 per request
+              ordering is not guaranteed and the typical budget for new items
+              requested through this form is around $150
             </span>
-            .
+            . If you&apos;re hoping to order more than this, you may need to
+            pitch to the Funding Committee.
           </p>
           <div className="space-y-2">
             {newLines.map((line, index) => (
@@ -567,8 +568,10 @@ export default function PublicRequestPage() {
             <div className="space-y-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-3">
               <p className="text-[11px] text-amber-900">
                 Use this for pizzas, snacks, drinks, catering, etc. We&apos;ll do
-                our best, but ordering is not guaranteed and the total budget for
-                new items is still capped at $150 per request.
+                our best, but ordering is not guaranteed and the typical budget
+                for new items requested through this form is around $150. If you
+                need more than this amount, you may need to pitch to the Funding
+                Committee.
               </p>
               <div className="space-y-2">
                 {foodLines.map((line, index) => (
