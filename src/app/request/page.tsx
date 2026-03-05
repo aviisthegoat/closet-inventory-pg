@@ -449,7 +449,7 @@ export default function PublicRequestPage() {
           </div>
           <div className="space-y-1">
             <label className="block text-xs font-medium text-zinc-700">
-              Level
+              Program / degree
             </label>
             <div className="flex gap-2 text-xs">
               <button
