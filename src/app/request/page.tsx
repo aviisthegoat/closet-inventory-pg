@@ -390,7 +390,7 @@ export default function PublicRequestPage() {
 
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-zinc-900">
-            2. What would you like to request?
+            What would you like to request?
           </h2>
           <p className="text-[11px] text-zinc-500">
             Start by choosing items from our existing closet if you need them. If
