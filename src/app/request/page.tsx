@@ -457,13 +457,14 @@ export default function PublicRequestPage() {
             Request new items (not found in inventory)
           </h3>
           <p className="text-[11px] text-zinc-500">
-            For items we don&apos;t already own, we&apos;ll do our best, but{" "}
+            For items we don&apos;t already have in our inventory, we&apos;ll do
+            our best to order them, but this isn&apos;t guaranteed.{" "}
             <span className="font-medium">
-              ordering is not guaranteed and the typical budget for new items
-              requested through this form is around $150
-            </span>
-            . If you&apos;re hoping to order more than this, you may need to
-            pitch to the Funding Committee.
+              As a guideline, we typically approve new purchases of around $150
+              per request, which will be paid from the club&apos;s budget.
+            </span>{" "}
+            If you&apos;d like to request more than this, you may need to present
+            your idea to the Funding Committee.
           </p>
           <div className="space-y-2">
             {newLines.map((line, index) => (
