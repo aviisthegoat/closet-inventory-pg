@@ -662,13 +662,16 @@ export default function PublicRequestPage() {
                   <label className="block text-[11px] font-medium text-zinc-700">
                     Delivery place
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={deliveryPlace}
                     onChange={(e) => setDeliveryPlace(e.target.value)}
-                    placeholder="e.g. Campus cafeteria, Event hall"
                     className="block w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs"
-                  />
+                  >
+                    <option value="">Select a lobby</option>
+                    <option value="Hult House Lobby">Hult House Lobby</option>
+                    <option value="Hult Point Lobby">Hult Point Lobby</option>
+                    <option value="Hult Center Lobby">Hult Center Lobby</option>
+                  </select>
                 </div>
               </div>
             </div>
